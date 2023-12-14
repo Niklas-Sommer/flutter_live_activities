@@ -86,7 +86,6 @@ class MockLiveActivitiesPlatform
 void main() {
   final LiveActivitiesPlatform initialPlatform =
       LiveActivitiesPlatform.instance;
-  LiveActivities liveActivitiesPlugin = LiveActivities();
   MockLiveActivitiesPlatform fakePlatform = MockLiveActivitiesPlatform();
   LiveActivitiesPlatform.instance = fakePlatform;
 
@@ -95,31 +94,31 @@ void main() {
   });
 
   test('init', () async {
-    expect(await liveActivitiesPlugin.init(appGroupId: 'APP_GROUP_ID'), null);
+    expect(await LiveActivities.init(appGroupId: 'APP_GROUP_ID'), null);
   });
 
   test('endActivity', () async {
-    expect(await liveActivitiesPlugin.endActivity('ACTIVITY_ID'), null);
+    expect(await LiveActivities.endActivity('ACTIVITY_ID'), null);
   });
 
   test('updateActivity', () async {
-    expect(await liveActivitiesPlugin.updateActivity('ACTIVITY_ID', {}), null);
+    expect(await LiveActivities.updateActivity('ACTIVITY_ID', {}), null);
   });
 
   test('endAllActivities', () async {
-    expect(await liveActivitiesPlugin.endAllActivities(), null);
+    expect(await LiveActivities.endAllActivities(), null);
   });
 
   test('getAllActivities', () async {
-    expect(await liveActivitiesPlugin.getAllActivitiesIds(), ['ACTIVITY_ID']);
+    expect(await LiveActivities.getAllActivitiesIds(), ['ACTIVITY_ID']);
   });
 
   test('areActivitiesEnabled', () async {
-    expect(await liveActivitiesPlugin.areActivitiesEnabled(), true);
+    expect(await LiveActivities.areActivitiesEnabled(), true);
   });
 
   test('urlSchemeStream', () async {
-    final result = await liveActivitiesPlugin.urlSchemeStream().first;
+    final result = await LiveActivities.urlSchemeStream().first;
     expect(result.host, 'HOST');
     expect(result.path, 'PATH');
     expect(result.scheme, 'SCHEME');
@@ -130,20 +129,20 @@ void main() {
 
   test('getActivityState', () async {
     expect(
-      await liveActivitiesPlugin.getActivityState('ACTIVITY_ID'),
+      await LiveActivities.getActivityState('ACTIVITY_ID'),
       LiveActivityState.active,
     );
   });
 
   test('getPushToken', () async {
     expect(
-      await liveActivitiesPlugin.getPushToken('PUSH_TOKEN'),
+      await LiveActivities.getPushToken('PUSH_TOKEN'),
       'PUSH_TOKEN',
     );
   });
 
   test('activityUpdateStream', () async {
-    final result = await liveActivitiesPlugin.activityUpdateStream.first;
+    final result = await LiveActivities.activityUpdateStream.first;
     expect(result.activityId, 'ACTIVITY_ID');
     expect(
       result.map<String>(
@@ -157,7 +156,7 @@ void main() {
   });
 
   test('activityUpdateStreamMapOrNullCorrectMapping', () async {
-    final result = await liveActivitiesPlugin.activityUpdateStream.first;
+    final result = await LiveActivities.activityUpdateStream.first;
     final wrongMappingIsNull = result.mapOrNull(ended: (_) => 'NOT_NULL');
 
     expect(wrongMappingIsNull, null);

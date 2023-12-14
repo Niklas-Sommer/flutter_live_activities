@@ -6,14 +6,15 @@ import 'package:live_activities/services/app_groups_image_service.dart';
 import 'live_activities_platform_interface.dart';
 
 class LiveActivities {
-  final AppGroupsImageService _appGroupsImageService = AppGroupsImageService();
+  static AppGroupsImageService? _appGroupsImageService;
 
   /// This is required to initialize the plugin.
   /// Create an App Group inside "Runner" target & "Extension" in Xcode.
   /// Be sure to set the *SAME* App Group in both targets.
   /// [urlScheme] is optional and is the scheme sub-component of the URL.
-  Future init({required String appGroupId, String? urlScheme}) {
-    _appGroupsImageService.appGroupId = appGroupId;
+  static Future init({required String appGroupId, String? urlScheme}) {
+    _appGroupsImageService = AppGroupsImageService();
+    _appGroupsImageService!.appGroupId = appGroupId;
     return LiveActivitiesPlatform.instance.init(
       appGroupId,
       urlScheme: urlScheme,
@@ -28,12 +29,17 @@ class LiveActivities {
   /// [StaleIn] indicates if a StaleDate should be added to the activity. If the value is null or the Duration
   /// is less than 1 minute then no staleDate will be used. The parameter only affects the live activity on
   /// iOS 16.2+ and does nothing on on iOS 16.1
-  Future<String?> createActivity(
+  static Future<String?> createActivity(
     Map<String, dynamic> data, {
     bool removeWhenAppIsKilled = false,
     Duration? staleIn,
   }) async {
-    await _appGroupsImageService.sendImageToAppGroups(data);
+    if (_appGroupsImageService == null) {
+      return Future.error(
+          Exception("LiveActivities not initialized. Call init first!"));
+    }
+
+    await _appGroupsImageService!.sendImageToAppGroups(data);
     return LiveActivitiesPlatform.instance.createActivity(
       data,
       removeWhenAppIsKilled: removeWhenAppIsKilled,
@@ -45,60 +51,71 @@ class LiveActivities {
   /// You can get an activity id by calling [createActivity].
   /// Data is a map of key/value pairs that will be transmitted to your iOS extension widget.
   /// Map is limited to String keys and values for now.
-  Future updateActivity(String activityId, Map<String, dynamic> data) async {
-    await _appGroupsImageService.sendImageToAppGroups(data);
+  static Future updateActivity(
+      String activityId, Map<String, dynamic> data) async {
+    if (_appGroupsImageService == null) {
+      return Future.error(
+          Exception("LiveActivities not initialized. Call init first!"));
+    }
+
+    await _appGroupsImageService!.sendImageToAppGroups(data);
     return LiveActivitiesPlatform.instance.updateActivity(activityId, data);
   }
 
   /// End an iOS 16.1+ live activity.
   /// You can get an activity id by calling [createActivity].
-  Future endActivity(String activityId) {
+  static Future endActivity(String activityId) {
     return LiveActivitiesPlatform.instance.endActivity(activityId);
   }
 
   /// Get the activity state.
   /// If the activity is not found, `null` is returned.
-  Future<LiveActivityState?> getActivityState(String activityId) {
+  static Future<LiveActivityState?> getActivityState(String activityId) {
     return LiveActivitiesPlatform.instance.getActivityState(activityId);
   }
 
   /// Get synchronously the push token.
   /// Prefer using the stream [activityUpdateStream] to keep push token up to date.
-  Future<String?> getPushToken(String activityId) {
+  static Future<String?> getPushToken(String activityId) {
     return LiveActivitiesPlatform.instance.getPushToken(activityId);
   }
 
   /// Get all iOS 16.1+ live activity ids.
   /// You can get an activity id by calling [createActivity].
-  Future<List<String>> getAllActivitiesIds() {
+  static Future<List<String>> getAllActivitiesIds() {
     return LiveActivitiesPlatform.instance.getAllActivitiesIds();
   }
 
   /// End all iOS 16.1+ live activities.
-  Future endAllActivities() {
+  static Future endAllActivities() {
     return LiveActivitiesPlatform.instance.endAllActivities();
   }
 
   /// Check if iOS 16.1+ live activities are enabled.
-  Future<bool> areActivitiesEnabled() async {
+  static Future<bool> areActivitiesEnabled() async {
     return LiveActivitiesPlatform.instance.areActivitiesEnabled();
   }
 
   /// Get a stream of url scheme data.
   /// Don't forget to add **CFBundleURLSchemes** to your Info.plist file.
   /// Return a Future of [scheme] [url] [host] [path] and [queryParameters].
-  Stream<UrlSchemeData> urlSchemeStream() {
+  static Stream<UrlSchemeData> urlSchemeStream() {
     return LiveActivitiesPlatform.instance.urlSchemeStream();
   }
 
   /// Remove all files copied in app group directory.
   /// This is recommended after you send image, files are stored but never deleted.
   /// You can set force param to remove **ALL** images in app group directory.
-  Future<void> dispose({bool force = false}) async {
+  static Future<void> dispose({bool force = false}) async {
+    if (_appGroupsImageService == null) {
+      return Future.error(
+          Exception("LiveActivities not initialized. Call init first!"));
+    }
+
     if (force) {
-      return _appGroupsImageService.removeAllImages();
+      return _appGroupsImageService!.removeAllImages();
     } else {
-      return _appGroupsImageService.removeImagesSession();
+      return _appGroupsImageService!.removeImagesSession();
     }
   }
 
@@ -124,6 +141,6 @@ class LiveActivities {
   ///   active: (state) { ... },
   /// ))
   /// ```
-  Stream<ActivityUpdate> get activityUpdateStream =>
+  static Stream<ActivityUpdate> get activityUpdateStream =>
       LiveActivitiesPlatform.instance.activityUpdateStream;
 }

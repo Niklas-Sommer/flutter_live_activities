@@ -35,7 +35,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final _liveActivitiesPlugin = LiveActivities();
   String? _latestActivityId;
   StreamSubscription<UrlSchemeData>? urlSchemeSubscription;
   FootballGameLiveActivityModel? _footballGameLiveActivityModel;
@@ -50,16 +49,16 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
 
-    _liveActivitiesPlugin.init(
+    LiveActivities.init(
       appGroupId: 'group.dimitridessus.liveactivities',
     );
 
-    _liveActivitiesPlugin.activityUpdateStream.listen((event) {
+    LiveActivities.activityUpdateStream.listen((event) {
       print('Activity update: $event');
     });
 
     urlSchemeSubscription =
-        _liveActivitiesPlugin.urlSchemeStream().listen((schemeData) {
+        LiveActivities.urlSchemeStream().listen((schemeData) {
       setState(() {
         if (schemeData.path == '/stats') {
           showDialog(
@@ -87,7 +86,7 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     urlSchemeSubscription?.cancel();
-    _liveActivitiesPlugin.dispose();
+    LiveActivities.dispose();
     super.dispose();
   }
 
@@ -167,8 +166,7 @@ class _HomeState extends State<Home> {
                       ),
                     );
 
-                    final activityId =
-                        await _liveActivitiesPlugin.createActivity(
+                    final activityId = await LiveActivities.createActivity(
                       _footballGameLiveActivityModel!.toMap(),
                     );
                     setState(() => _latestActivityId = activityId);
@@ -190,7 +188,7 @@ class _HomeState extends State<Home> {
                 TextButton(
                   onPressed: () async {
                     final supported =
-                        await _liveActivitiesPlugin.areActivitiesEnabled();
+                        await LiveActivities.areActivitiesEnabled();
                     if (context.mounted) {
                       showDialog(
                         context: context,
@@ -215,7 +213,7 @@ class _HomeState extends State<Home> {
               if (_latestActivityId != null)
                 TextButton(
                   onPressed: () {
-                    _liveActivitiesPlugin.endAllActivities();
+                    LiveActivities.endAllActivities();
                     _latestActivityId = null;
                     setState(() {});
                   },
@@ -249,7 +247,7 @@ class _HomeState extends State<Home> {
       teamBScore: teamBScore,
       // teamAName: null,
     );
-    return _liveActivitiesPlugin.updateActivity(
+    return LiveActivities.updateActivity(
       _latestActivityId!,
       data.toMap(),
     );
